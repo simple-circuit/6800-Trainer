@@ -1,0 +1,180 @@
+
+M68HC11 Absolute Assembler   Version 2.70C:app2.ASC
+
+
+   1 A 0000                                                      
+   2 A      00E4       TEMP      EQU       $00E4                 
+   3 A      00E7       ADDR      EQU       $00E7                 
+   4 A      00E9       FLAG      EQU       $00E9                 
+   5 A      00EA       BRKADD    EQU       $00EA                 
+   6 A      00EC       BRKOP     EQU       $00EC                 
+   7 A 0000                                                      
+   8 A                 *I/O FUNCTIONS 
+   9 A      FC00       RESET     EQU       $FC00                 
+  10 A      FC8A       PRTSTR    EQU       $FC8A                 
+  11 A      FCC3       GETKEY    EQU       $FCC3                 
+  12 A      FCDA       MKASCI    EQU       $FCDA                 
+  13 A      FCE4       GET2H     EQU       $FCE4                 
+  14 A      FD05       GET4H     EQU       $FD05                 
+  15 A      FD28       CHG2H     EQU       $FD28                 
+  16 A      FD2B       CH2HNP    EQU       $FD2B                 
+  17 A      FDF8       CHG4H     EQU       $FDF8                 
+  18 A      FE90       PRTDAT    EQU       $FE90                 
+  19 A      FE90       PRTADD    EQU       $FE90                 
+  20 A      FB70       OUTCH     EQU       $FB70                 
+  21 A      FBEA       OUT2H     EQU       $FBEA                 
+  22 A 0000                                                      
+  23 A                 *VECTOR ENTRY POINTS 
+  24 A      00F7       IRQV      EQU       $00F7                 
+  25 A      00F4       SWIV      EQU       $00F4                 
+  26 A      00FD       NMIV      EQU       $00FD                 
+  27 A      FC00       RESETV    EQU       $FC00                 
+  28 A 0000                                                      
+  29 A                 *SPECIAL OP CODES 
+  30 A                 *S1 IS SYSTEM STACK AND S2 IS USER STACK 
+  31 A      0002       SS2       EQU       $02                   *SINGLE STEP: RS2, EXECUTE OP CODE, RS1 
+  32 A      0003       TX2       EQU       $03                   *TRANSFER X TO S2 
+  33 A      0004       T2X       EQU       $04                   *TRANSFER S2 TO X 
+  34 A      0005       RS2       EQU       $05                   *SWI S1 THEN RTI TO S2 
+  35 A      0015       RS1       EQU       $15                   *SWI S2 THEN RTI TO S1 
+  36 A      0012       TON       EQU       $12                   *TURN TRACE ON (OUTPUT TO SERIAL AND SERIAL1) 
+  37 A      0013       TOF       EQU       $13                   *TURN TRACE OFF 
+  38 A 0000                                                      
+  39 A                 * UART Status 0xF000 Read Only, Bit-1 Transmit Ready, Bit-0 Receive Ready 
+  40 A                 *      Use: LDAA $F000 or LDAB $F000 
+  41 A                 * UART Write Data 0xF001 
+  42 A                 *      Use: STAA $F001 or STAB $F001 
+  43 A                 * UART Read Data 0xF003 
+  44 A                 *      Use: LDAA $F003, LDAB $F003, or ANDB $F003 
+  45 A                 * I/O Data In at 0xF011 Digital pins D0 to D7 
+  46 A                 *     Use: Any load instruction, maps to memory 
+  47 A                 * I/O Data Out at 0xF010 Digital pins D8 to D15 
+  48 A                 *     Use: STAB $F010 
+  49 A                 * ADC Start Read at 0xF020 
+  50 A                 *     Use: LDAB #ch then STAB $F020 where ch = 1 to 3 
+  51 A                 * ADC High Byte at 0xF020, ADC Low Byte at 0xF021 
+  52 A                 *     Use: Any load instruction, maps to memory  
+  53 A                  
+  54 A      F000       UARTST    EQU       $F000                 
+  55 A      F001       UARTWR    EQU       $F001                 
+  56 A      F003       UARTRD    EQU       $F003                 
+  57 A      F010       IOWR      EQU       $F010                 
+  58 A      F011       IORD      EQU       $F011                 
+
+M68HC11 Absolute Assembler   Version 2.70C:app2.ASC
+
+
+  59 A      F020       ADCWR     EQU       $F020                 
+  60 A      F020       ADCRD     EQU       $F020                 
+  61 A 0000                                                      
+  62 A                 *KEY PAD INPUT 
+  63 A                 *$C000 = $FF FOR NO KEY PRESSED AND $00 TO $10 FOR KEY(S) PRESSED 
+  64 A                 *$C003 = KEY COLUMN-3 3,6,9,C,F  BIT DATA IS LOW FOR PRESSED KEY 
+  65 A                 *$C005 = KEY COLUMN-2 2,5,8,B,E  BIT DATA IS LOW FOR PRESSED KEY 
+  66 A                 *$C006 = KEY COLUMN-1 0,1,4,7,A,D BIT DATA IS LOW FOR PRESSED KEY 
+  67 A 0000                                                      
+  68 A      C000       KEYIN     EQU       $C000                 
+  69 A      C006       KEYC1     EQU       $C006                 
+  70 A      C005       KEYC2     EQU       $C005                 
+  71 A      C003       KEYC3     EQU       $C003                 
+  72 A 0000                                                      
+  73 A                 *LCD DISPLAY 
+  74 A                 *$C100 = ASCII VALUE FOR LEFT MOST DIGIT, WRITE ZERO TO USE SEGMENT BIT MODE 
+  75 A                 *$C101 = ASCII VALUE FOR NEXT DIGIT, WRITE ZERO TO USE SEGMENT BIT MODE 
+  76 A                 *$C102 = ASCII VALUE FOR NEXT DIGIT, WRITE ZERO TO USE SEGMENT BIT MODE 
+  77 A                 *$C103 = ASCII VALUE FOR NEXT DIGIT, WRITE ZERO TO USE SEGMENT BIT MODE 
+  78 A                 *$C104 = ASCII VALUE FOR NEXT DIGIT, WRITE ZERO TO USE SEGMENT BIT MODE 
+  79 A                 *$C105 = ASCII VALUE FOR NEXT DIGIT, WRITE ZERO TO USE SEGMENT BIT MODE 
+  80 A                 *$C106 = ASCII VALUE FOR NEXT DIGIT, WRITE ZERO TO USE SEGMENT BIT MODE 
+  81 A                 *$C107 = ASCII VALUE FOR RIGHT MOST DIGIT, WRITE ZERO TO USE BIT MODE 
+  82 A                 *$C110 = g, $C111 = f, ..., $C117 = d.p. SEGMENT FOR LEFT MOST DIGIT 
+  83 A                 *$WRITE $01 TO SET SEGMENT, $00 TO CLEAR 
+  84 A                 *REMAINING DIGITS $C120, $C130, $C140, $C150, $C160, $C170, $C180 
+  85 A 0000                                                      
+  86 A      C100       ASCI0     EQU       $C100                 
+  87 A      C101       ASCI1     EQU       $C101                 
+  88 A      C102       ASCI2     EQU       $C102                 
+  89 A      C103       ASCI3     EQU       $C103                 
+  90 A      C104       ASCI4     EQU       $C104                 
+  91 A      C105       ASCI5     EQU       $C105                 
+  92 A      C106       ASCI6     EQU       $C106                 
+  93 A      C107       ASCI7     EQU       $C107                 
+  94 A      C110       SG0       EQU       $C110                 
+  95 A      C120       SG1       EQU       $C120                 
+  96 A      C130       SG2       EQU       $C130                 
+  97 A      C140       SG3       EQU       $C140                 
+  98 A      C150       SG4       EQU       $C150                 
+  99 A      C160       SG5       EQU       $C160                 
+ 100 A      C170       SG6       EQU       $C170                 
+ 101 A      C180       SG7       EQU       $C180                 
+ 102 A 0000                                                      
+ 103 A      0000                 ORG       $0000                 
+ 104 A 0000 860A       START     LDAA      #$0A                  
+ 105 A 0002 BDFB70               JSR       OUTCH                 *CLEAR DISPLAY 
+ 106 A 0005 860D                 LDAA      #$0D                  *MOVE TO LEFT DIGIT 
+ 107 A 0007 CE0027               LDX       #STRBEG               *ADDRESS OF STRING TO PRINT 
+ 108 A 000A BDFC8A     LOOP      JSR       PRTSTR                
+ 109 A 000D DFE7                 STX       ADDR                  *SAVE X 
+ 110 A 000F CE8000               LDX       #$8000                
+ 111 A 0012 09         LOOP2     DEX                             *DELAY LOOP 
+ 112 A 0013 01                   NOP                             
+ 113 A 0014 01                   NOP                             
+ 114 A 0015 01                   NOP                             
+ 115 A 0016 01                   NOP                             
+ 116 A 0017 26F9                 BNE       LOOP2                 
+
+M68HC11 Absolute Assembler   Version 2.70C:app2.ASC
+
+
+ 117 A 0019 DEE7                 LDX       ADDR                  *RESTORE X 
+ 118 A 001B 08                   INX                             *MOVE ON CHARATER UP 
+ 119 A 001C DFE7                 STX       ADDR                  
+ 120 A 001E 8C003A               CPX       #STREND               *TEST IF DONE 
+ 121 A 0021 26E7                 BNE       LOOP                  
+ 122 A 0023 BDFCC3               JSR       GETKEY                *WAIT FOR A KEY PRESS 
+ 123 A 0026 15                   FCB       RS1                   *RETURN TO MONITOR 
+ 124 A 0027                                                      
+ 125 A 0027 4D45535341 STRBEG    FCC       'MESSAGE IN A BOTTLE' 
+            474520494E
+            204120424F
+            54544C45  
+ 126 A 003A 2020202020 STREND    FCC       '        '            
+            202020    
+ 127 A 0042                                                      
+ 128 A                           END                             
+
+SYMBOL TABLE:  Total Entries=   61
+
+ADCRD               F020    OUT2H               FBEA
+ADCWR               F020    OUTCH               FB70
+ADDR                00E7    PRTADD              FE90
+ASCI0               C100    PRTDAT              FE90
+ASCI1               C101    PRTSTR              FC8A
+ASCI2               C102    RESET               FC00
+ASCI3               C103    RESETV              FC00
+ASCI4               C104    RS1                 0015
+ASCI5               C105    RS2                 0005
+ASCI6               C106    SG0                 C110
+ASCI7               C107    SG1                 C120
+BRKADD              00EA    SG2                 C130
+BRKOP               00EC    SG3                 C140
+CH2HNP              FD2B    SG4                 C150
+CHG2H               FD28    SG5                 C160
+CHG4H               FDF8    SG6                 C170
+FLAG                00E9    SG7                 C180
+GET2H               FCE4    SS2                 0002
+GET4H               FD05    START               0000
+GETKEY              FCC3    STRBEG              0027
+IORD                F011    STREND              003A
+IOWR                F010    SWIV                00F4
+IRQV                00F7    T2X                 0004
+KEYC1               C006    TEMP                00E4
+KEYC2               C005    TOF                 0013
+KEYC3               C003    TON                 0012
+KEYIN               C000    TX2                 0003
+LOOP                000A    UARTRD              F003
+LOOP2               0012    UARTST              F000
+MKASCI              FCDA    UARTWR              F001
+NMIV                00FD    
+
+Total errors: 0

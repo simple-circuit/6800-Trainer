@@ -1,0 +1,794 @@
+
+M68HC11 Absolute Assembler   Version 2.70C:TRAINER8.ASC
+
+
+   1 A                 *PICO M6800 TRAINER MONITOR PROGRAM 
+   2 A                 *BY SIMPLE CIRCUIT 2024 
+   3 A                 *INCLUDED AS PART OF sim680b_trainer_uart9600n SKETCH FOR THE PICO PROCESSOR 
+   4 A 0000                                                      
+   5 A      00E4                 ORG       $00E4                 
+   6 P 00E4 0003       TEMP      RMB       3                     *STORAGE FOR HEX DATA INPUT 
+   7 P 00E7 0002       ADDR      RMB       2                     *SAVE ADDRESS LOCATION 
+   8 P 00E9 0001       FLAG      RMB       1                     *EXIT AUTO INSERT FLAG 
+   9 P 00EA 0002       BRKADD    RMB       2                     *BREAK POINT ADDRESS FROM USER PROGRAM 
+  10 P 00EC 0001       BRKOP     RMB       1                     *BREAK POINT OP CODE FROM USER PROGRAM 
+  11 P 00ED 0001       DIGPTR    RMB       1                     *DISPLAY DIGIT POINTER FOR OUTCH ROUTINE 
+  12 A 00EE                                                      
+  13 A 00EE                                                      
+  14 A                 *TRAINER 6800 
+  15 A 00EE                                                      
+  16 A      FB70                 ORG       $FB70                 
+  17 A FB70                                                      
+  18 A                 *OUTPUT ONE ASCII CHARACTER IN ACCA TO DISPLAY 
+  19 A                 *WORKS LIKE ONE LINE CRT 
+  20 A FB70                                                      
+  21 A FB70 810D       OUTCH     CMPA      #$0D                  *<CR> MOVES TO LEFT DIGIT 
+  22 A FB72 2604                 BNE       NOTCR                 
+  23 A FB74 7F00ED               CLR       DIGPTR                
+  24 A FB77 39                   RTS                             
+  25 A FB78 810A       NOTCR     CMPA      #$0A                  *<LF> CLEARS DISPLAY 
+  26 A FB7A 261B                 BNE       NOTLF                 
+  27 A FB7C 8620                 LDAA      #$20                  *PUT A SPACE IN EACH 
+  28 A FB7E B7C100               STAA      $C100                 
+  29 A FB81 B7C101               STAA      $C101                 
+  30 A FB84 B7C102               STAA      $C102                 
+  31 A FB87 B7C103               STAA      $C103                 
+  32 A FB8A B7C104               STAA      $C104                 
+  33 A FB8D B7C105               STAA      $C105                 
+  34 A FB90 B7C106               STAA      $C106                 
+  35 A FB93 B7C107               STAA      $C107                 
+  36 A FB96 39                   RTS                             
+  37 A FB97 36         NOTLF     PSHA                            
+  38 A FB98 96ED                 LDAA      DIGPTR                *GET DIGIT POSITION 
+  39 A FB9A 2A02                 BPL       OUTCHP                *IF MSB SET,  
+  40 A FB9C 32                   PULA                            *PAST LAST DIGIT 
+  41 A FB9D 39                   RTS                             *DO NOTHING 
+  42 A FB9E 4A         OUTCHP    DECA                            *FIND WHICH DIGIT 
+  43 A FB9F 2B17                 BMI       OUTCH0                *TO PRINT BY 
+  44 A FBA1 4A                   DECA                            *DECREMENTING COUNT 
+  45 A FBA2 2B1A                 BMI       OUTCH1                *UNTIL NEGATIVE 
+  46 A FBA4 4A                   DECA                            
+  47 A FBA5 2B1D                 BMI       OUTCH2                
+  48 A FBA7 4A                   DECA                            
+  49 A FBA8 2B20                 BMI       OUTCH3                
+  50 A FBAA 4A                   DECA                            
+  51 A FBAB 2B23                 BMI       OUTCH4                
+  52 A FBAD 4A                   DECA                            
+  53 A FBAE 2B26                 BMI       OUTCH5                
+  54 A FBB0 4A                   DECA                            
+  55 A FBB1 2B29                 BMI       OUTCH6                
+  56 A FBB3 4A                   DECA                            
+  57 A FBB4 2B2C                 BMI       OUTCH7                
+  58 A FBB6 32                   PULA                            
+
+M68HC11 Absolute Assembler   Version 2.70C:TRAINER8.ASC
+
+
+  59 A FBB7 39                   RTS                             
+  60 A FBB8 32         OUTCH0    PULA                            *RESTORE CHAR 
+  61 A FBB9 B7C100               STAA      $C100                 *STORE IT IN DIGIT 
+  62 A FBBC 2028                 BRA       OUTCH8                *GO TO EXIT 
+  63 A FBBE 32         OUTCH1    PULA                            
+  64 A FBBF B7C101               STAA      $C101                 
+  65 A FBC2 2022                 BRA       OUTCH8                
+  66 A FBC4 32         OUTCH2    PULA                            
+  67 A FBC5 B7C102               STAA      $C102                 
+  68 A FBC8 201C                 BRA       OUTCH8                
+  69 A FBCA 32         OUTCH3    PULA                            
+  70 A FBCB B7C103               STAA      $C103                 
+  71 A FBCE 2016                 BRA       OUTCH8                
+  72 A FBD0 32         OUTCH4    PULA                            
+  73 A FBD1 B7C104               STAA      $C104                 
+  74 A FBD4 2010                 BRA       OUTCH8                
+  75 A FBD6 32         OUTCH5    PULA                            
+  76 A FBD7 B7C105               STAA      $C105                 
+  77 A FBDA 200A                 BRA       OUTCH8                
+  78 A FBDC 32         OUTCH6    PULA                            
+  79 A FBDD B7C106               STAA      $C106                 
+  80 A FBE0 2004                 BRA       OUTCH8                
+  81 A FBE2 32         OUTCH7    PULA                            
+  82 A FBE3 B7C107               STAA      $C107                 
+  83 A FBE6 7C00ED     OUTCH8    INC       DIGPTR                *MOVE DIGIT POINTER 
+  84 A FBE9 39                   RTS                             *RETURN 
+  85 A FBEA                                                      
+  86 A                 *DISPLAY 2 HEX VALUES IN ACCA 
+  87 A FBEA                                                      
+  88 A FBEA 36         OUT2H     PSHA                            *SAVE BYTE 
+  89 A FBEB 44                   LSRA                            *GET UPPER NIBBLE 
+  90 A FBEC 44                   LSRA                            
+  91 A FBED 44                   LSRA                            
+  92 A FBEE 44                   LSRA                            
+  93 A FBEF BDFCDA               JSR       MKASCI                *CONVERT HEX TO ASCII 
+  94 A FBF2 BDFB70               JSR       OUTCH                 *DISPLAY IT 
+  95 A FBF5 32                   PULA                            *GET BYTE 
+  96 A FBF6 840F                 ANDA      #$0F                  *LOWER NIBBLE 
+  97 A FBF8 BDFCDA               JSR       MKASCI                *CONVERT HEX TO ASCII 
+  98 A FBFB BDFB70               JSR       OUTCH                 *DISPLAY IT 
+  99 A FBFE 39                   RTS                             *RETURN 
+ 100 A FBFF                                                      
+ 101 A FBFF 01                   NOP                             
+ 102 A FC00                                                      
+ 103 A      FC00                 ORG       $FC00                 
+ 104 A FC00                                                      
+ 105 A                 *VECTOR RESET START OF THE TRAINER MONITOR PROGRAM 
+ 106 A FC00                                                      
+ 107 A FC00 0F         RESET     SEI                             *MASK INTERRUPTS 
+ 108 A FC01 8E00E0               LDS       #$00E0                *SP AT 00E0 
+ 109 A FC04 CE00C0               LDX       #$00C0                *SP2 AT 00C0 
+ 110 A FC07 04                   FCB       $04                   *X --> STACK 2 
+ 111 A FC08 8610                 LDAA      #$10                  *CC FOR USER 
+ 112 A FC0A A701                 STAA      1,X                   
+ 113 A FC0C 4F                   CLRA                            *CLEAR ALL 
+ 114 A FC0D A702                 STAA      2,X                   *USER REGISTERS 
+ 115 A FC0F A703                 STAA      3,X                   
+ 116 A FC11 A704                 STAA      4,X                   
+
+M68HC11 Absolute Assembler   Version 2.70C:TRAINER8.ASC
+
+
+ 117 A FC13 A705                 STAA      5,X                   
+ 118 A FC15 A706                 STAA      6,X                   *DEFAULT TO START USER AT $0000 
+ 119 A FC17 A707                 STAA      7,X                   
+ 120 A FC19 86FF                 LDAA      #$FF                  *FFFF == NO BREAK POINT 
+ 121 A FC1B 97EA                 STAA      BRKADD                *SAVE IN BP ADDRESS 
+ 122 A FC1D 97EB                 STAA      BRKADD+1              
+ 123 A FC1F                                                      
+ 124 A                 *CHECK FOR COMMAND KEY FUNCTION AND EXECUTE IT 
+ 125 A FC1F                                                      
+ 126 A FC1F CEFC82     TEST      LDX       #STRCLR               *DISPLAY READY 
+ 127 A FC22 BDFC8A               JSR       PRTSTR                
+ 128 A FC25 BDFCC3               JSR       GETKEY                *WAIT COMMAND KEY 
+ 129 A FC28 CEFD62               LDX       #SHOAA                *SHOW ACCA 
+ 130 A FC2B 8101                 CMPA      #$01                  *CALL IT IF 1 
+ 131 A FC2D 274F                 BEQ       CALL                  
+ 132 A FC2F CEFD82               LDX       #SHOAB                *SHOW ACCB 
+ 133 A FC32 8102                 CMPA      #$02                  *CALL IT IF 2 
+ 134 A FC34 2748                 BEQ       CALL                  
+ 135 A FC36 CEFDA2               LDX       #SHOCC                *SHOW CC REG 
+ 136 A FC39 8105                 CMPA      #$05                  *CALL IT IF 5 
+ 137 A FC3B 2741                 BEQ       CALL                  
+ 138 A FC3D CEFE54               LDX       #SHOX                 *SHOW REG X 
+ 139 A FC40 8104                 CMPA      #$04                  *CALL IT IF 4 
+ 140 A FC42 273A                 BEQ       CALL                  
+ 141 A FC44 CEFE7C               LDX       #SHOPC                *SHOW PC 
+ 142 A FC47 8103                 CMPA      #$03                  *CALL IT IF 3 
+ 143 A FC49 2733                 BEQ       CALL                  
+ 144 A FC4B CEFEE6               LDX       #SHOMEM               *EXAMINE MEM 
+ 145 A FC4E 810E                 CMPA      #$0E                  *CALL IT IF E 
+ 146 A FC50 272C                 BEQ       CALL                  
+ 147 A FC52 CEFF2B               LDX       #SHOATO               *AUTO INSERT 
+ 148 A FC55 810A                 CMPA      #$0A                  *CALL IT IF A 
+ 149 A FC57 2725                 BEQ       CALL                  
+ 150 A FC59 CEFF59               LDX       #SHODO                *DO PROGRAM 
+ 151 A FC5C 810D                 CMPA      #$0D                  *CALL IT IF D 
+ 152 A FC5E 271E                 BEQ       CALL                  
+ 153 A FC60 CEFF75               LDX       #SHOSP                *SHOW SP2 
+ 154 A FC63 8106                 CMPA      #$06                  *CALL IT IF 6 
+ 155 A FC65 2717                 BEQ       CALL                  
+ 156 A FC67 CEFF8D               LDX       #SHOSS                *SINGLE STEP 
+ 157 A FC6A 8108                 CMPA      #$08                  *CALL IT IF 8 
+ 158 A FC6C 2710                 BEQ       CALL                  
+ 159 A FC6E CEFFA3               LDX       #SHOBRK               *INSERT BREAK POINT 
+ 160 A FC71 8109                 CMPA      #$09                  *CALL IT IF 9 
+ 161 A FC73 2709                 BEQ       CALL                  
+ 162 A FC75 CEFFC3               LDX       #SHORTI               *RETURN FROM INTERRUPT  
+ 163 A FC78 8107                 CMPA      #$07                  *CALL IT IF 7 
+ 164 A FC7A 2702                 BEQ       CALL                  
+ 165 A FC7C 20A1                 BRA       TEST                  *NOT A COMMAND 
+ 166 A FC7E AD00       CALL      JSR       0,X                   
+ 167 A FC80 209D                 BRA       TEST                  
+ 168 A FC82                                                      
+ 169 A FC82 5245414459 STRCLR    FCC       'READY   '            
+            202020    
+ 170 A FC8A                                                      
+ 171 A                 *PRINT AND ASCII STRING ON THE DISPLAY 
+ 172 A                 *TOP OF ASCII STRING ADDRESS IN X 
+ 173 A                 *STARTS ON LEFT MOST DISPLAY CHARACTER 
+
+M68HC11 Absolute Assembler   Version 2.70C:TRAINER8.ASC
+
+
+ 174 A                 *STOPS ON NULL=0 OR 8 CHARACTERS MAX 
+ 175 A FC8A                                                      
+ 176 A FC8A A600       PRTSTR    LDAA      0,X                   *GET FIRST CHAR 
+ 177 A FC8C 2734                 BEQ       PRTEND                *END ON NULL 
+ 178 A FC8E B7C100               STAA      $C100                 *DISPLAY IT 
+ 179 A FC91 A601                 LDAA      1,X                   *NEXT CHAR 
+ 180 A FC93 272D                 BEQ       PRTEND                *END ON NULL 
+ 181 A FC95 B7C101               STAA      $C101                 *DISPLAY IT  
+ 182 A FC98 A602                 LDAA      2,X                   
+ 183 A FC9A 2726                 BEQ       PRTEND                
+ 184 A FC9C B7C102               STAA      $C102                 
+ 185 A FC9F A603                 LDAA      3,X                   
+ 186 A FCA1 271F                 BEQ       PRTEND                
+ 187 A FCA3 B7C103               STAA      $C103                 
+ 188 A FCA6 A604                 LDAA      4,X                   
+ 189 A FCA8 2718                 BEQ       PRTEND                
+ 190 A FCAA B7C104               STAA      $C104                 
+ 191 A FCAD A605                 LDAA      5,X                   
+ 192 A FCAF 2711                 BEQ       PRTEND                
+ 193 A FCB1 B7C105               STAA      $C105                 
+ 194 A FCB4 A606                 LDAA      6,X                   
+ 195 A FCB6 270A                 BEQ       PRTEND                
+ 196 A FCB8 B7C106               STAA      $C106                 
+ 197 A FCBB A607                 LDAA      7,X                   *GET LAST CHAR 
+ 198 A FCBD 2703                 BEQ       PRTEND                *END ON NULL 
+ 199 A FCBF B7C107               STAA      $C107                 *DISPLAY IT 
+ 200 A FCC2 39         PRTEND    RTS                             *RETURN 
+ 201 A FCC3                                                      
+ 202 A FCC3 B6C000     GETKEY    LDAA      $C000                 *READ KEY UNTIL 
+ 203 A FCC6 2BFB                 BMI       GETKEY                *POSITIVE VALUE 
+ 204 A FCC8 F6C000     GETKEY1   LDAB      $C000                 *LOAD IT IN B 
+ 205 A FCCB C110                 CMPB      #$10                  *CHECK FOR 0-F 
+ 206 A FCCD 2601                 BNE       GETKEY3               *IT IS 
+ 207 A FCCF 17                   TBA                             *SAVE COPY 
+ 208 A FCD0 5D         GETKEY3   TSTB                            *KEY IS POSITIVE 
+ 209 A FCD1 2AF5                 BPL       GETKEY1               *TIL RELEASED 
+ 210 A FCD3 8110                 CMPA      #$10                  *FLAG EXIT AUTO 
+ 211 A FCD5 2602                 BNE       GETKEY2               *IF 0x10 
+ 212 A FCD7 97E9                 STAA      FLAG                  
+ 213 A FCD9 39         GETKEY2   RTS                             *RETURN 
+ 214 A FCDA                                                      
+ 215 A FCDA 8109       MKASCI    CMPA      #9                    *TEST IF NUMBER 
+ 216 A FCDC 2203                 BHI       ISLTR                 
+ 217 A FCDE 8B30                 ADDA      #$30                  *NUMBER+0x30=ASCII 
+ 218 A FCE0 39                   RTS                             *RETURN 
+ 219 A FCE1 8B37       ISLTR     ADDA      #$37                  *AtoF+0x37=ASCII 
+ 220 A FCE3 39                   RTS                             *RETURN 
+ 221 A FCE4                                                      
+ 222 A                 *INPUT 2 HEX VALUES AND STORE AT TEMP+1 
+ 223 A                 *ALSO RETURNED IN ACCA 
+ 224 A FCE4                                                      
+ 225 A FCE4 8DDD       GET2H     BSR       GETKEY                *GET FIRST HEX 
+ 226 A FCE6 97E5                 STAA      TEMP+1                *SAVE FOR DISPLAY 
+ 227 A FCE8 48                   ASLA                            *MOVE TO HIGH 
+ 228 A FCE9 48                   ASLA                            *NIBBLE 
+ 229 A FCEA 48                   ASLA                            
+ 230 A FCEB 48                   ASLA                            
+ 231 A FCEC 97E6                 STAA      TEMP+2                *SAVE IT 
+
+M68HC11 Absolute Assembler   Version 2.70C:TRAINER8.ASC
+
+
+ 232 A FCEE 96E5                 LDAA      TEMP+1                *GET SAVED 
+ 233 A FCF0 8DE8                 BSR       MKASCI                *DISPLAY IT  
+ 234 A FCF2 B7C106               STAA      $C106                 *DIGIT 6 
+ 235 A FCF5 8DCC                 BSR       GETKEY                *GET NEXT HEX 
+ 236 A FCF7 97E5                 STAA      TEMP+1                
+ 237 A FCF9 8DDF                 BSR       MKASCI                *DISPLAY IT 
+ 238 A FCFB B7C107               STAA      $C107                 *DIGIT 7 
+ 239 A FCFE 96E5                 LDAA      TEMP+1                *SUM NIBBLES 
+ 240 A FD00 9BE6                 ADDA      TEMP+2                
+ 241 A FD02 97E5                 STAA      TEMP+1                *SAVE 2 HEX 
+ 242 A FD04 39                   RTS                             *RETURN 
+ 243 A FD05                                                      
+ 244 A                 *INPUT 4 HEX VALUES AND STOR HIGH BYTE AT TEMP, LOW BYTE AT TEMP+1 
+ 245 A FD05                                                      
+ 246 A FD05 8DBC       GET4H     BSR       GETKEY                *GET 2 HEX KEYS 
+ 247 A FD07 97E4                 STAA      TEMP                  
+ 248 A FD09 48                   ASLA                            
+ 249 A FD0A 48                   ASLA                            
+ 250 A FD0B 48                   ASLA                            
+ 251 A FD0C 48                   ASLA                            
+ 252 A FD0D 97E6                 STAA      TEMP+2                
+ 253 A FD0F 96E4                 LDAA      TEMP                  
+ 254 A FD11 8DC7                 BSR       MKASCI                
+ 255 A FD13 B7C104               STAA      $C104                 *DIGIT 4 
+ 256 A FD16 8DAB                 BSR       GETKEY                
+ 257 A FD18 97E4                 STAA      TEMP                  
+ 258 A FD1A 8DBE                 BSR       MKASCI                
+ 259 A FD1C B7C105               STAA      $C105                 *DIGIT 5 
+ 260 A FD1F 96E4                 LDAA      TEMP                  
+ 261 A FD21 9BE6                 ADDA      TEMP+2                
+ 262 A FD23 97E4                 STAA      TEMP                  
+ 263 A FD25 8DBD                 BSR       GET2H                 *GET 2 MORE HEX 
+ 264 A FD27 39                   RTS                             *RETURN  
+ 265 A FD28                                                      
+ 266 A                 *PRINT A STRING POINTED TO BY X 
+ 267 A                 *DISPLAY THE BYTE AT TEMP+1 
+ 268 A                 *IF C KEY IS PRESSED, GET NEW BYTE AND SAVE TO TEMP+1 
+ 269 A                 *ACCA == 0x80 INDICATES BYTE UPDATED 
+ 270 A FD28                                                      
+ 271 A FD28 BDFC8A     CHG2H     JSR       PRTSTR                *X POINTS TO STRING 
+ 272 A FD2B 96E5       CHG2HNP   LDAA      TEMP+1                *GET SAVED BYTE 
+ 273 A FD2D 44                   LSRA                            *DISPLAY IT 
+ 274 A FD2E 44                   LSRA                            
+ 275 A FD2F 44                   LSRA                            
+ 276 A FD30 44                   LSRA                            
+ 277 A FD31 BDFCDA               JSR       MKASCI                
+ 278 A FD34 B7C106               STAA      $C106                 *AT DIGIT 6 
+ 279 A FD37 96E5                 LDAA      TEMP+1                
+ 280 A FD39 840F                 ANDA      #$0F                  
+ 281 A FD3B BDFCDA               JSR       MKASCI                
+ 282 A FD3E B7C107               STAA      $C107                 *AT DIGIT 7 
+ 283 A FD41 BDFCC3               JSR       GETKEY                *KEY PRESS EXITS 
+ 284 A FD44 810C                 CMPA      #$0C                  *BUT C CHANGES 
+ 285 A FD46 260D                 BNE       CHG2H1                *RETURN IF NOT C 
+ 286 A FD48 8601                 LDAA      #$01                  *SET DP 
+ 287 A FD4A B7C127               STAA      $C127                 *DIGIT 6 
+ 288 A FD4D B7C117               STAA      $C117                 *DIGIT 7 
+ 289 A FD50 BDFCE4               JSR       GET2H                 *GET 2 NEW HEX 
+
+M68HC11 Absolute Assembler   Version 2.70C:TRAINER8.ASC
+
+
+ 290 A FD53 8680                 LDAA      #$80                  *RETURN UPDATE 
+ 291 A FD55 39         CHG2H1    RTS                             *RETURN 
+ 292 A FD56                                                      
+ 293 A FD56                                                      
+ 294 A FD56 96E5       CHGAA     LDAA      TEMP+1                *GET NEW A 
+ 295 A FD58 04                   FCB       $04                   *TRANSFER STACK2 TO X 
+ 296 A FD59 A703                 STAA      3,X                   *PUT IN STACK2 
+ 297 A FD5B 39                   RTS                             
+ 298 A FD5C                                                      
+ 299 A FD5C 04         GETAA     FCB       $04                   *TRANSFER STACK2 TO X 
+ 300 A FD5D A603                 LDAA      3,X                   *GET A FROM STACK2 
+ 301 A FD5F 97E5                 STAA      TEMP+1                *SAVE FOR DISPLAY 
+ 302 A FD61 39                   RTS                             
+ 303 A FD62                                                      
+ 304 A                 *PROCESS ACCA KEY COMMAND 
+ 305 A FD62                                                      
+ 306 A FD62 8DF8       SHOAA     BSR       GETAA                 *GET A 
+ 307 A FD64 CEFD6E               LDX       #STRAA                *DISPLAY STRING 
+ 308 A FD67 BDFD28               JSR       CHG2H                 *CHECK FOR CHANGE 
+ 309 A FD6A BDFD56               JSR       CHGAA                 *SAVE A 
+ 310 A FD6D 39                   RTS                             
+ 311 A FD6E                                                      
+ 312 A FD6E 414343413D STRAA     FCC       'ACCA==  '            
+            3D2020    
+ 313 A FD76                                                      
+ 314 A FD76 96E5       CHGAB     LDAA      TEMP+1                *GET NEW B 
+ 315 A FD78 04                   FCB       $04                   *TRANSFER STACK2 TO X 
+ 316 A FD79 A702                 STAA      2,X                   *PUT IN STACK 2 
+ 317 A FD7B 39                   RTS                             
+ 318 A FD7C                                                      
+ 319 A FD7C 04         GETAB     FCB       $04                   *TRANSFER STACK2 TO X 
+ 320 A FD7D A602                 LDAA      2,X                   *GET B FROM STACK 
+ 321 A FD7F 97E5                 STAA      TEMP+1                *SAVE FOR DISPLAY 
+ 322 A FD81 39                   RTS                             
+ 323 A FD82                                                      
+ 324 A                 *PROCESS ACCB KEY COMMAND 
+ 325 A FD82                                                      
+ 326 A FD82 8DF8       SHOAB     BSR       GETAB                 *GET B 
+ 327 A FD84 CEFD8E               LDX       #STRAB                *DISPLAY STRING 
+ 328 A FD87 BDFD28               JSR       CHG2H                 *CHECK FOR CHANGE 
+ 329 A FD8A BDFD76               JSR       CHGAB                 *SAVE B 
+ 330 A FD8D 39                   RTS                             
+ 331 A FD8E                                                      
+ 332 A FD8E 414343423D STRAB     FCC       'ACCB==  '            
+            3D2020    
+ 333 A FD96                                                      
+ 334 A FD96 96E5       CHGCC     LDAA      TEMP+1                *GET NEW CC 
+ 335 A FD98 04                   FCB       $04                   *TRANSFER STACK2 TO X 
+ 336 A FD99 A701                 STAA      1,X                   *PUT IN STACK 2 
+ 337 A FD9B 39                   RTS                             
+ 338 A FD9C                                                      
+ 339 A FD9C 04         GETCC     FCB       $04                   *TRANSFER STACK2 TO X 
+ 340 A FD9D A601                 LDAA      1,X                   *GET CC FROM STACK 
+ 341 A FD9F 97E5                 STAA      TEMP+1                *SAVE FOR DISPLAY 
+ 342 A FDA1 39                   RTS                             
+ 343 A FDA2                                                      
+ 344 A                 *PROCESS CONDITION CODE KEY COMMAND 
+ 345 A FDA2                                                      
+
+M68HC11 Absolute Assembler   Version 2.70C:TRAINER8.ASC
+
+
+ 346 A FDA2 8DF8       SHOCC     BSR       GETCC                 *GET CC 
+ 347 A FDA4 8D07                 BSR       LSTCC                 *CONVERT TO BINARY 
+ 348 A FDA6 BDFD2B               JSR       CHG2HNP               *DISPLAY AS HEX 
+ 349 A FDA9 BDFD96               JSR       CHGCC                 *SAVE  CC 
+ 350 A FDAC 39                   RTS                             
+ 351 A FDAD                                                      
+ 352 A                 *BINARY GRAPHICAL PRINT OF CONDITION CODE VALUE STORED AT TEMP+1 
+ 353 A FDAD                                                      
+ 354 A FDAD 96E5       LSTCC     LDAA      TEMP+1                *LOAD CC 
+ 355 A FDAF 44                   LSRA                            *BIT-0 IS CARRY 
+ 356 A FDB0 2404                 BCC       LSTCC0C               
+ 357 A FDB2 C663                 LDAB      #'c                   *CARRY SET USE 'c 
+ 358 A FDB4 2002                 BRA       LSTCC1C               
+ 359 A FDB6 C65F       LSTCC0C   LDAB      #'_                   *ELSE '_ 
+ 360 A FDB8 F7C105     LSTCC1C   STAB      $C105                 *DISPLAY IT  
+ 361 A FDBB 44                   LSRA                            
+ 362 A FDBC 2404                 BCC       LSTCC0V               *BIT-1 IS OVERFLO 
+ 363 A FDBE C656                 LDAB      #'V                   *CARRY SET USE 'V 
+ 364 A FDC0 2002                 BRA       LSTCC1V               
+ 365 A FDC2 C65F       LSTCC0V   LDAB      #'_                   *ELSE '_ 
+ 366 A FDC4 F7C104     LSTCC1V   STAB      $C104                 *DISPLAY IT 
+ 367 A FDC7 44                   LSRA                            
+ 368 A FDC8 2404                 BCC       LSTCC0Z               *BIT-2 IS ZERO 
+ 369 A FDCA C66F                 LDAB      #'o                   *CARRY SET USE '0 
+ 370 A FDCC 2002                 BRA       LSTCC1Z               
+ 371 A FDCE C65F       LSTCC0Z   LDAB      #'_                   *ELSE '_ 
+ 372 A FDD0 F7C103     LSTCC1Z   STAB      $C103                 *DISPLAY IT 
+ 373 A FDD3 44                   LSRA                            
+ 374 A FDD4 2404                 BCC       LSTCC0N               *BIT-3 IS NEGATIVE 
+ 375 A FDD6 C64E                 LDAB      #'N                   *CARRY SET USE 'N 
+ 376 A FDD8 2002                 BRA       LSTCC1N               
+ 377 A FDDA C65F       LSTCC0N   LDAB      #'_                   *ELSE '_  
+ 378 A FDDC F7C102     LSTCC1N   STAB      $C102                 *DISPLAY IT 
+ 379 A FDDF 44                   LSRA                            
+ 380 A FDE0 2404                 BCC       LSTCC0I               *BIT-4 IS INTERRUPT MASK 
+ 381 A FDE2 C669                 LDAB      #'i                   *CARRY SET USE'i 
+ 382 A FDE4 2002                 BRA       LSTCC1I               
+ 383 A FDE6 C65F       LSTCC0I   LDAB      #'_                   *ELSE '_ 
+ 384 A FDE8 F7C101     LSTCC1I   STAB      $C101                 *DISPLAY IT 
+ 385 A FDEB 44                   LSRA                            
+ 386 A FDEC 2404                 BCC       LSTCC0H               *BIT-5 IS HALF CARRY 
+ 387 A FDEE C668                 LDAB      #'h                   *CARRY SET USE 'h  
+ 388 A FDF0 2002                 BRA       LSTCC1H               
+ 389 A FDF2 C65F       LSTCC0H   LDAB      #'_                   *ELSE '_ 
+ 390 A FDF4 F7C100     LSTCC1H   STAB      $C100                 *DISPLAY IT 
+ 391 A FDF7 39                   RTS                             *RETURN 
+ 392 A FDF8                                                      
+ 393 A                 *PRINT STRING POINTED TO BY X 
+ 394 A                 *DIPLAY WORD STORED AT TEMP 
+ 395 A                 *IF C KEY PRESSED, SHOW DP ON DIGITS AND GET NEW WORD 
+ 396 A                 *WORD RETURNED IN TEMP 
+ 397 A FDF8                                                      
+ 398 A FDF8 BDFC8A     CHG4H     JSR       PRTSTR                *X POINTS TO STRING 
+ 399 A FDFB 96E4                 LDAA      TEMP                  *GET HIGH BYTE 
+ 400 A FDFD 44                   LSRA                            *CONVERT TO 
+ 401 A FDFE 44                   LSRA                            *TWO HEX DIGITS 
+ 402 A FDFF 44                   LSRA                            
+ 403 A FE00 44                   LSRA                            
+
+M68HC11 Absolute Assembler   Version 2.70C:TRAINER8.ASC
+
+
+ 404 A FE01 BDFCDA               JSR       MKASCI                
+ 405 A FE04 B7C104               STAA      $C104                 *DISPLAY DIGIT 4 
+ 406 A FE07 96E4                 LDAA      TEMP                  
+ 407 A FE09 840F                 ANDA      #$0F                  
+ 408 A FE0B BDFCDA               JSR       MKASCI                
+ 409 A FE0E B7C105               STAA      $C105                 *DISPLAY DIGIT 5 
+ 410 A FE11 96E5                 LDAA      TEMP+1                *GET LOW BYTE 
+ 411 A FE13 44                   LSRA                            *CONVERT TO 
+ 412 A FE14 44                   LSRA                            *TWO HEX DIGITS 
+ 413 A FE15 44                   LSRA                            
+ 414 A FE16 44                   LSRA                            
+ 415 A FE17 BDFCDA               JSR       MKASCI                
+ 416 A FE1A B7C106               STAA      $C106                 *DISPLAY DIGIT 6 
+ 417 A FE1D 96E5                 LDAA      TEMP+1                
+ 418 A FE1F 840F                 ANDA      #$0F                  
+ 419 A FE21 BDFCDA               JSR       MKASCI                
+ 420 A FE24 B7C107               STAA      $C107                 *DISPLAY DIGIT 7 
+ 421 A FE27 BDFCC3               JSR       GETKEY                
+ 422 A FE2A 810C                 CMPA      #$0C                  *TEST FOR CHANGE KEY 
+ 423 A FE2C 2611                 BNE       CHG4H1                *NO CHANGE RETURN 
+ 424 A FE2E 8601                 LDAA      #$01                  *IF CHANGE 
+ 425 A FE30 B7C147               STAA      $C147                 *TURN ON DP FOR 
+ 426 A FE33 B7C137               STAA      $C137                 *ALL DIGITS 
+ 427 A FE36 B7C127               STAA      $C127                 
+ 428 A FE39 B7C117               STAA      $C117                 
+ 429 A FE3C BDFD05               JSR       GET4H                 *GET NEW ADDRESS 
+ 430 A FE3F 39         CHG4H1    RTS                             *RETURN 
+ 431 A FE40                                                      
+ 432 A FE40                                                      
+ 433 A FE40 04         CHGX      FCB       $04                   *TRANSFER STACK2 TO X 
+ 434 A FE41 96E4                 LDAA      TEMP                  *GET NEW X HIGH BYTE 
+ 435 A FE43 A704                 STAA      4,X                   *SAVE TO STACK2 
+ 436 A FE45 96E5                 LDAA      TEMP+1                *GET NEW X LOW BYTE 
+ 437 A FE47 A705                 STAA      5,X                   *SAVE TO STACK2 
+ 438 A FE49 39                   RTS                             
+ 439 A FE4A                                                      
+ 440 A FE4A 04         GETX      FCB       $04                   *TRANSFER STACK2 TO X 
+ 441 A FE4B A604                 LDAA      4,X                   *GET X HIGH FROM STACK2 
+ 442 A FE4D 97E4                 STAA      TEMP                  *SAVE IT 
+ 443 A FE4F A605                 LDAA      5,X                   *GET X LOW FROM STACK2 
+ 444 A FE51 97E5                 STAA      TEMP+1                *SAVE IT 
+ 445 A FE53 39                   RTS                             
+ 446 A FE54                                                      
+ 447 A                 *PROCESS INDEX KEY COMMAND 
+ 448 A FE54                                                      
+ 449 A FE54 8DF4       SHOX      BSR       GETX                  *GET X 
+ 450 A FE56 CEFE60               LDX       #STRX                 *PRINT STRING 
+ 451 A FE59 BDFDF8               JSR       CHG4H                 *CHECK FOR CHANGE 
+ 452 A FE5C BDFE40               JSR       CHGX                  *SAVE X 
+ 453 A FE5F 39                   RTS                             
+ 454 A FE60                                                      
+ 455 A FE60 69723D3D20 STRX      FCC       'ir==    '            
+            202020    
+ 456 A FE68                                                      
+ 457 A FE68 04         CHGPC     FCB       $04                   *TRANSFER STACK2 TO X 
+ 458 A FE69 96E4                 LDAA      TEMP                  *GET PC HIGH BYTE 
+ 459 A FE6B A706                 STAA      6,X                   *STORE PC HIGH ON STACK2 
+ 460 A FE6D 96E5                 LDAA      TEMP+1                *GET PC LOW BYTE 
+
+M68HC11 Absolute Assembler   Version 2.70C:TRAINER8.ASC
+
+
+ 461 A FE6F A707                 STAA      7,X                   *STORE PC LOW ON STACK2 
+ 462 A FE71 39                   RTS                             
+ 463 A FE72                                                      
+ 464 A FE72 04         GETPC     FCB       $04                   *TRANSFER STACK2 TO X 
+ 465 A FE73 A606                 LDAA      6,X                   *GET PC HIGH FROM STACK2 
+ 466 A FE75 97E4                 STAA      TEMP                  *SAVE HIGH BYTE 
+ 467 A FE77 A607                 LDAA      7,X                   *GET PC LOW FROM STACK2 
+ 468 A FE79 97E5                 STAA      TEMP+1                SAVE LOW BYTE 
+ 469 A FE7B 39                   RTS                             
+ 470 A FE7C                                                      
+ 471 A                 *PROCESS PC KEY COMMAND 
+ 472 A FE7C                                                      
+ 473 A FE7C 8DF4       SHOPC     BSR       GETPC                 *GET THE PC 
+ 474 A FE7E CEFE88               LDX       #STRPC                *PRINT STRING 
+ 475 A FE81 BDFDF8               JSR       CHG4H                 *CHECK FOR CHANGE  
+ 476 A FE84 BDFE68               JSR       CHGPC                 *SAVE PC 
+ 477 A FE87 39                   RTS                             
+ 478 A FE88                                                      
+ 479 A FE88 50433D3D20 STRPC     FCC       'PC==    '            
+            202020    
+ 480 A FE90                                                      
+ 481 A                 *PRINTS DATA BYTE AT ADDRESS TEMP+1 
+ 482 A FE90                                                      
+ 483 A FE90 96E5       PRTDAT    LDAA      TEMP+1                *LOAD DATA BYTE 
+ 484 A FE92 44                   LSRA                            *FROM TEMP+1 
+ 485 A FE93 44                   LSRA                            *DISPLAY 2 HEX 
+ 486 A FE94 44                   LSRA                            *WITH DECIMAL POINTS 
+ 487 A FE95 44                   LSRA                            
+ 488 A FE96 BDFCDA               JSR       MKASCI                
+ 489 A FE99 8A80                 ORAA      #$80                  *MSB SETS DP 
+ 490 A FE9B B7C106               STAA      $C106                 *DISPLAY AT DIGIT-6 
+ 491 A FE9E 96E5                 LDAA      TEMP+1                
+ 492 A FEA0 840F                 ANDA      #$0F                  
+ 493 A FEA2 BDFCDA               JSR       MKASCI                
+ 494 A FEA5 8A80                 ORAA      #$80                  
+ 495 A FEA7 B7C107               STAA      $C107                 *DISPLAY AT DIGIT-7 
+ 496 A FEAA 39                   RTS                             
+ 497 A FEAB                                                      
+ 498 A                 *PRINTS ADDRESS WORD AT ADDR 
+ 499 A                 *MOVES BYTE LOCATED AT ADDRESS TO TEMP+1 AND ACCA 
+ 500 A FEAB                                                      
+ 501 A FEAB 96E7       PRTADD    LDAA      ADDR                  *LOAD ADDRESS HIGH BYTE 
+ 502 A FEAD 44                   LSRA                            *CONVERT TO HIGH NIBBLE 
+ 503 A FEAE 44                   LSRA                            
+ 504 A FEAF 44                   LSRA                            
+ 505 A FEB0 44                   LSRA                            
+ 506 A FEB1 BDFCDA               JSR       MKASCI                
+ 507 A FEB4 B7C100               STAA      $C100                 *DIPLAY AT DIGIT-0 
+ 508 A FEB7 96E7                 LDAA      ADDR                  *RELOAD HIGH BYTE 
+ 509 A FEB9 840F                 ANDA      #$0F                  *CONVERT TO LOW NIBBLE 
+ 510 A FEBB BDFCDA               JSR       MKASCI                
+ 511 A FEBE B7C101               STAA      $C101                 *DISPLAY AT DIGIT-1 
+ 512 A FEC1 96E8                 LDAA      ADDR+1                *LOAD ADDRESS LOW BYTE 
+ 513 A FEC3 44                   LSRA                            *CONVERT TO HIGH NIBBLE 
+ 514 A FEC4 44                   LSRA                            
+ 515 A FEC5 44                   LSRA                            
+ 516 A FEC6 44                   LSRA                            
+ 517 A FEC7 BDFCDA               JSR       MKASCI                *DIPLAY AT DIGIT-2 
+
+M68HC11 Absolute Assembler   Version 2.70C:TRAINER8.ASC
+
+
+ 518 A FECA B7C102               STAA      $C102                 
+ 519 A FECD 96E8                 LDAA      ADDR+1                *RELOAD LOW BYTE 
+ 520 A FECF 840F                 ANDA      #$0F                  *CONVERT TO LOW NIBBLE 
+ 521 A FED1 BDFCDA               JSR       MKASCI                
+ 522 A FED4 B7C103               STAA      $C103                 *DISPLAY AT DIGIT-3 
+ 523 A FED7 863D                 LDAA      #'=                   *PRINT == 
+ 524 A FED9 B7C104               STAA      $C104                 
+ 525 A FEDC B7C105               STAA      $C105                 
+ 526 A FEDF DEE7                 LDX       ADDR                  *POINT TO ADDRESS 
+ 527 A FEE1 A600                 LDAA      0,X                   *LOAD DATA AT ADDRESS 
+ 528 A FEE3 97E5                 STAA      TEMP+1                *SAVE IT 
+ 529 A FEE5 39                   RTS                             *RETURN 
+ 530 A FEE6                                                      
+ 531 A                 *PROCESS EXAMINE MEMORY KEY COMMAND 
+ 532 A FEE6                                                      
+ 533 A FEE6 CEFF23     SHOMEM    LDX       #STRMEM               *PRINT STRING 
+ 534 A FEE9 BDFC8A               JSR       PRTSTR                
+ 535 A FEEC BDFD05               JSR       GET4H                 *GET NEW ADDRESS 
+ 536 A FEEF DEE4                 LDX       TEMP                  *LOAD IT 
+ 537 A FEF1 DFE7                 STX       ADDR                  *SAVE IT 
+ 538 A FEF3 8DB6       SHOMEM2   BSR       PRTADD                *PRINT ADDRESS 
+ 539 A FEF5 BDFD2B               JSR       CHG2HNP               *CHANGE DATA 
+ 540 A FEF8 810F                 CMPA      #$0F                  *F RETURNED 
+ 541 A FEFA 271C                 BEQ       SHOMEMF               *INCREMENT ADDRESS 
+ 542 A FEFC 810B                 CMPA      #$0B                  *B RETURNED 
+ 543 A FEFE 270D                 BEQ       SHOMEMB               *DECREMENT ADDRESS 
+ 544 A FF00 8180                 CMPA      #$80                  *0x80 RETURNED 
+ 545 A FF02 2608                 BNE       SHOMEM1               *EXIT ON OTHER KEYS 
+ 546 A FF04 DEE7                 LDX       ADDR                  *UPDATE DATA 
+ 547 A FF06 96E5                 LDAA      TEMP+1                *AT CURRENT ADDRESS 
+ 548 A FF08 A700                 STAA      0,X                   
+ 549 A FF0A 20E7                 BRA       SHOMEM2               *DO IT AGAIN 
+ 550 A FF0C 39         SHOMEM1   RTS                             *RETURN 
+ 551 A FF0D DEE7       SHOMEMB   LDX       ADDR                  *DECREMENT 
+ 552 A FF0F 09                   DEX                             *ADDRESS 
+ 553 A FF10 DFE7                 STX       ADDR                  
+ 554 A FF12 A600                 LDAA      0,X                   
+ 555 A FF14 97E5                 STAA      TEMP+1                
+ 556 A FF16 20DB                 BRA       SHOMEM2               *SHOW NEW DATA 
+ 557 A FF18 DEE7       SHOMEMF   LDX       ADDR                  *INCREMENT ADDRESS  
+ 558 A FF1A 08                   INX                             
+ 559 A FF1B DFE7                 STX       ADDR                  
+ 560 A FF1D A600                 LDAA      0,X                   
+ 561 A FF1F 97E5                 STAA      TEMP+1                
+ 562 A FF21 20D0                 BRA       SHOMEM2               *SHOW NEW DATA 
+ 563 A FF23                                                      
+ 564 A FF23 414444525F STRMEM    FCC       'ADDR____'            
+            5F5F5F    
+ 565 A FF2B                                                      
+ 566 A                 *PROCESS AUTO ENTRY KEY COMMAND 
+ 567 A FF2B                                                      
+ 568 A FF2B 7F00E9     SHOATO    CLR       FLAG                  *CLEAR EXIT FLAG 
+ 569 A FF2E CEFF23               LDX       #STRMEM               *PRINT STRING 
+ 570 A FF31 BDFC8A               JSR       PRTSTR                
+ 571 A FF34 BDFD05               JSR       GET4H                 *GET START ADDRESS 
+ 572 A FF37 DEE4                 LDX       TEMP                  
+ 573 A FF39 DFE7                 STX       ADDR                  *SAVE IT 
+ 574 A FF3B A600       SHOATO2   LDAA      0,X                   *GET DATA AT ADDRESS 
+
+M68HC11 Absolute Assembler   Version 2.70C:TRAINER8.ASC
+
+
+ 575 A FF3D 97E5                 STAA      TEMP+1                *SAVE IT 
+ 576 A FF3F BDFEAB               JSR       PRTADD                *DISPLAY ADDRESS 
+ 577 A FF42 BDFE90               JSR       PRTDAT                *DISPLAY DATA WITH DP 
+ 578 A FF45 BDFCE4               JSR       GET2H                 *GET NEW DATA 
+ 579 A FF48 DEE7                 LDX       ADDR                  *STORE IT 
+ 580 A FF4A 96E5                 LDAA      TEMP+1                *AT ADDRESS 
+ 581 A FF4C A700                 STAA      0,X                   
+ 582 A FF4E 08                   INX                             *GOTO NEXT ADDRESS 
+ 583 A FF4F DFE7                 STX       ADDR                  
+ 584 A FF51 7D00E9               TST       FLAG                  *CHECK FOR EXIT KEY 
+ 585 A FF54 2602                 BNE       SHOATO3               *IF 0x10 QUIT 
+ 586 A FF56 20E3                 BRA       SHOATO2               *ELSE GET DATA FOR NEXT 
+ 587 A FF58 39         SHOATO3   RTS                             *RETURN 
+ 588 A FF59                                                      
+ 589 A                 *PROCESS DO PROGRAM KEY COMMAND 
+ 590 A FF59                                                      
+ 591 A FF59 CEFF6D     SHODO     LDX       #STRDO                *PRINT STRING 
+ 592 A FF5C BDFC8A               JSR       PRTSTR                
+ 593 A FF5F BDFD05               JSR       GET4H                 *GET PROGRAM START ADDRESS 
+ 594 A FF62 BDFE68               JSR       CHGPC                 *UPDATE THE PC 
+ 595 A FF65 CEFFF0               LDX       #STRRTI               *DISPLAY 'USER' 
+ 596 A FF68 BDFC8A               JSR       PRTSTR                
+ 597 A FF6B 05                   FCB       $05                   *DO RS2 TO RUN FROM STACK 2 
+ 598 A FF6C 39                   RTS                             *RETURN TO MONITOR FOR RS1 
+ 599 A FF6D                                                      
+ 600 A FF6D 20444F205F STRDO     FCC       ' DO ____'            
+            5F5F5F    
+ 601 A FF75                                                      
+ 602 A                 *PROCESS SP2 KEY COMMAND 
+ 603 A FF75                                                      
+ 604 A FF75 CEFF85     SHOSP     LDX       #STRSP                *PRINT STRING 
+ 605 A FF78 BDFC8A               JSR       PRTSTR                
+ 606 A FF7B 04                   FCB       $04                   *STACK POINTER 2 --> X 
+ 607 A FF7C DFE7                 STX       ADDR                  *SAVE SP 
+ 608 A FF7E BDFEAB               JSR       PRTADD                *DISPLAY IT 
+ 609 A FF81 BDFCC3               JSR       GETKEY                *WAIT FOR KEY 
+ 610 A FF84 39                   RTS                             *RETURN (NO CHANGE ALLOWED) 
+ 611 A FF85                                                      
+ 612 A FF85 202020203D STRSP     FCC       '    ==SP'            
+            3D5350    
+ 613 A FF8D                                                      
+ 614 A                 *PROCESS SINGLE STEP KEY COMMAND 
+ 615 A FF8D                                                      
+ 616 A FF8D 02         SHOSS     FCB       $02                   *SINGLE STEP AND RETURN 
+ 617 A FF8E BDFE72               JSR       GETPC                 *USER PC POINTS TO NEXT OP CODE 
+ 618 A FF91 DEE4                 LDX       TEMP                  
+ 619 A FF93 DFE7                 STX       ADDR                  *POINT TO OP CODE 
+ 620 A FF95 BDFEAB               JSR       PRTADD                *DISPLAY THE ADDRESS 
+ 621 A FF98 BDFE90               JSR       PRTDAT                *DISPLAY THE HEX OP CODE 
+ 622 A FF9B BDFCC3               JSR       GETKEY                
+ 623 A FF9E 8108                 CMPA      #$08                  *GOTO NEXT OP CODE IF 8 PRESSED 
+ 624 A FFA0 27EB                 BEQ       SHOSS                 
+ 625 A FFA2 39                   RTS                             *ELSE RETURN 
+ 626 A FFA3                                                      
+ 627 A                 *PROCESS BREAK POINT INSERT KEY COMMAND 
+ 628 A FFA3                                                      
+ 629 A FFA3 CEFFE8     SHOBRK    LDX       #STRBRK               *PRINT STRING 
+ 630 A FFA6 BDFC8A               JSR       PRTSTR                
+
+M68HC11 Absolute Assembler   Version 2.70C:TRAINER8.ASC
+
+
+ 631 A FFA9 DEEA                 LDX       BRKADD                *TEST FOR ACTIVE BREAK 
+ 632 A FFAB 08                   INX                             
+ 633 A FFAC 2705                 BEQ       SHOBRK2               *IF NONE, GET NEW 
+ 634 A FFAE 09                   DEX                             
+ 635 A FFAF 96EC                 LDAA      BRKOP                 *RESTORE OP CODE 
+ 636 A FFB1 A700                 STAA      0,X                   
+ 637 A FFB3 BDFD05     SHOBRK2   JSR       GET4H                 *GET NEW ADDRESS 
+ 638 A FFB6 DEE4                 LDX       TEMP                  
+ 639 A FFB8 DFEA                 STX       BRKADD                *UPDATE BREAK ADDRESS 
+ 640 A FFBA A600                 LDAA      0,X                   *GET OP CODE 
+ 641 A FFBC 97EC                 STAA      BRKOP                 *SAVE IT 
+ 642 A FFBE 8615                 LDAA      #$15                  *REPLACE WITH RS1 OP 
+ 643 A FFC0 A700                 STAA      0,X                   *PUT IN BREAK ADDRESS 
+ 644 A FFC2 39                   RTS                             *DONE, RETURN 
+ 645 A FFC3                                                      
+ 646 A                 *PROCESS RETURN FROM INTERRUPT KEY COMMAND 
+ 647 A FFC3                                                      
+ 648 A FFC3 CEFFF0     SHORTI    LDX       #STRRTI               *PRINT STRING 'USER' 
+ 649 A FFC6 BDFC8A               JSR       PRTSTR                
+ 650 A FFC9 04                   FCB       $04                   *STACK 2 --> X 
+ 651 A FFCA EE06                 LDX       6,X                   *GET PC 
+ 652 A FFCC 09                   DEX                             *IF PREVIOUS BREAK, THEN PC WAS ADVANCED BY 1 
+ 653 A FFCD 9CEA                 CPX       BRKADD                
+ 654 A FFCF 2702                 BEQ       SHORTI2               *WAS BREAK IF SAME 
+ 655 A FFD1 05                   FCB       $05                   *RETURN TO USER SP2-->SP, RS2 
+ 656 A FFD2 39                   RTS                             *GO BACK TO START ON NEXT INTERRUPT 
+ 657 A FFD3 96EC       SHORTI2   LDAA      BRKOP                 
+ 658 A FFD5 A700                 STAA      0,X                   *RESTORE INSTRUCTION 
+ 659 A FFD7 04                   FCB       $04                   
+ 660 A FFD8 96EA                 LDAA      BRKADD                *DECREMENT PC ON USER STACK 
+ 661 A FFDA A706                 STAA      6,X                   *SAVE PC HIGH BYTE 
+ 662 A FFDC 96EB                 LDAA      BRKADD+1              
+ 663 A FFDE A707                 STAA      7,X                   *SAVE PC LOW BYTE 
+ 664 A FFE0 86FF                 LDAA      #$FF                  
+ 665 A FFE2 97EA                 STAA      BRKADD                *CLEAR BREAK ADDRESS = FFFF 
+ 666 A FFE4 97EB                 STAA      BRKADD+1              
+ 667 A FFE6 05                   FCB       $05                   *RETURN TO USER SP2-->SP, RTI 
+ 668 A FFE7 39                   RTS                             *GO BACK TO START ON NEXT INTERRUPT 
+ 669 A FFE8                                                      
+ 670 A FFE8 42522E205F STRBRK    FCC       'BR. ____'            
+            5F5F5F    
+ 671 A FFF0 5553455220 STRRTI    FCC       'USER    '            
+            202020    
+ 672 A FFF8                                                      
+ 673 A                 * FCB 0,0,0,0,0,0 *BYTE PADDING IF NEEDED FOR CONTIGUOUS CODE FOR ROM 
+ 674 A FFF8                                                      
+ 675 A                 * ORG $FFF8 
+ 676 A FFF8 0103                 FDB       $0103                 *IRQ VECTOR 
+ 677 A FFFA 0100                 FDB       $0100                 *SWI VECTOR 
+ 678 A FFFC 0106                 FDB       $0106                 *NMI VECTOR 
+ 679 A FFFE FC00                 FDB       RESET                 *RESET VECTOR 
+ 680 A 0000                                                      
+ 681 A 0000                                                      
+ 682 A                  
+ 683 A                  
+ 684 A                           END                             
+
+SYMBOL TABLE:  Total Entries=   93
+
+ADDR                00E7    OUTCH1              FBBE
+BRKADD              00EA    OUTCH2              FBC4
+BRKOP               00EC    OUTCH3              FBCA
+CALL                FC7E    OUTCH4              FBD0
+CHG2H               FD28    OUTCH5              FBD6
+CHG2H1              FD55    OUTCH6              FBDC
+CHG2HNP             FD2B    OUTCH7              FBE2
+CHG4H               FDF8    OUTCH8              FBE6
+CHG4H1              FE3F    OUTCHP              FB9E
+CHGAA               FD56    PRTADD              FEAB
+CHGAB               FD76    PRTDAT              FE90
+CHGCC               FD96    PRTEND              FCC2
+CHGPC               FE68    PRTSTR              FC8A
+CHGX                FE40    RESET               FC00
+DIGPTR              00ED    SHOAA               FD62
+FLAG                00E9    SHOAB               FD82
+GET2H               FCE4    SHOATO              FF2B
+GET4H               FD05    SHOATO2             FF3B
+GETAA               FD5C    SHOATO3             FF58
+GETAB               FD7C    SHOBRK              FFA3
+GETCC               FD9C    SHOBRK2             FFB3
+GETKEY              FCC3    SHOCC               FDA2
+GETKEY1             FCC8    SHODO               FF59
+GETKEY2             FCD9    SHOMEM              FEE6
+GETKEY3             FCD0    SHOMEM1             FF0C
+GETPC               FE72    SHOMEM2             FEF3
+GETX                FE4A    SHOMEMB             FF0D
+ISLTR               FCE1    SHOMEMF             FF18
+LSTCC               FDAD    SHOPC               FE7C
+LSTCC0C             FDB6    SHORTI              FFC3
+LSTCC0H             FDF2    SHORTI2             FFD3
+LSTCC0I             FDE6    SHOSP               FF75
+LSTCC0N             FDDA    SHOSS               FF8D
+LSTCC0V             FDC2    SHOX                FE54
+LSTCC0Z             FDCE    STRAA               FD6E
+LSTCC1C             FDB8    STRAB               FD8E
+LSTCC1H             FDF4    STRBRK              FFE8
+LSTCC1I             FDE8    STRCLR              FC82
+LSTCC1N             FDDC    STRDO               FF6D
+LSTCC1V             FDC4    STRMEM              FF23
+LSTCC1Z             FDD0    STRPC               FE88
+MKASCI              FCDA    STRRTI              FFF0
+NOTCR               FB78    STRSP               FF85
+NOTLF               FB97    STRX                FE60
+OUT2H               FBEA    TEMP                00E4
+OUTCH               FB70    TEST                FC1F
+OUTCH0              FBB8    
+
+Total errors: 0
