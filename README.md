@@ -12,4 +12,6 @@ Example code for message, 5 minute chess clock and a voltmeter.
 
 ![](./schematic.png).
 
+New! Mini Pocket Trainer using 70x100mm board. Build files located in Mini Trainer folder.
 
+![](./load7.png).
